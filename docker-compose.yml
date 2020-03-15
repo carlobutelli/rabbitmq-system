@@ -1,0 +1,12 @@
+version: '3.6'
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: rabbit
+    restart: always
+    environment:
+      - RABBITMQ_VHOST=tech
+      - RABBITMQ_DEFAULT_VHOST=tech
+    ports:
+      - "15672:15672"
+      - "5672:5672"
