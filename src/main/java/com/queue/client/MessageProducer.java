@@ -41,17 +41,13 @@ public class MessageProducer {
         Connection rabbitConn = null;
 
         try {
-            String message = new ObjectMapper().writeValueAsString(generateMessage(payload, success, proccessId));
+            String message = new ObjectMapper().writeValueAsString(generateMessage(proccessId, payload, success));
             log.info("[CLIENT]: generated message: " + message);
 
             log.info("[CLIENT]: trying to setup rabbitmq connection");
             rabbitConn = this.connectToRabbitMQ();
-            Channel channel = rabbitConn.createChannel();
 
-            channel.exchangeDeclare(EXCHANGE_NAME, "direct", true);
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-            channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY_SUCCESS);
-            channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY_FAILURE);
+            Channel channel = getChannel(rabbitConn);
 
             channel.basicPublish(
                     EXCHANGE_NAME,
@@ -73,6 +69,17 @@ public class MessageProducer {
         }
     }
 
+    private Channel getChannel(Connection rabbitConn) throws IOException {
+        Channel channel = rabbitConn.createChannel();
+
+        channel.exchangeDeclare(EXCHANGE_NAME, "direct", true);
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY_SUCCESS);
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY_FAILURE);
+
+        return channel;
+    }
+
     private Connection connectToRabbitMQ() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException,
             TimeoutException, IOException {
         String rabbitUri = String.format("amqp://%s:%s@%s:%s/%s",
@@ -88,7 +95,7 @@ public class MessageProducer {
 
     }
 
-    private MessageBody generateMessage(String message, boolean success, String processId) {
+    private MessageBody generateMessage(String processId, String message, boolean success) {
         String statusMessage = this.getRoutingKey(success);
         return new MessageBody(statusMessage, processId, message);
     }
