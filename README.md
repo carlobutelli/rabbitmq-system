@@ -9,19 +9,26 @@ Setup
 
 ### Run RabbitMQ
 
-First run the RabbitMQ container
+First run the RabbitMQ management container
 ```
 docker-compose up -d
 ```
-Access the UI at [RabbitMQ](http://localhost:15672) to check messages are successfully sent to Rabbit  
+Access [RabbitMQ UI](http://localhost:15672) to check messages are successfully sent to Rabbit  
 Username: `guest`
 Password: `guest`
 
 ### Run the application
+Application contains two modules:
+- `publisher` in charge of publishing messages to a specified exchange
+- `worker` listening on a given queue ready to consume messages
 
-(mainclass: `com.queue`).
-
-Either run this locally in maven using `mvn spring_boot:run` or using the run features from your IDE of choice.
+Either run this locally in maven using `mvn -T 2 spring-boot:run` or run each module from its root dir
+```
+cd publisher && mvn spring-boot:run
+```
+```
+cd worker && mvn spring-boot:run
+```
 
 ### Swagger
 
@@ -45,9 +52,14 @@ Environment variables
 The app requires to set some env variables in order to perform all its operations correctly
 
 ```bash
-export RABBIT_USER=guest
-export RABBIT_PASSWORD=guest
-export RABBIT_HOST=127.0.0.1
-export RABBIT_PORT=5672
-export RABBIT_VHOST=tech
+export RABBITMQ_USER=guest
+export RABBITMQ_PASSWORD=guest
+export RABBITMQ_HOST=127.0.0.1
+export RABBITMQ_PORT=5672
+export RABBITMQ_VHOST=tech
+export RABBITMQ_QUEUE=hello
+export RABBITMQ_EXCHANGE=greetings
+export RABBITMQ_BINDING_LIST="got_success, got_failure"
+export RABBITMQ_CONCURRENCY=2
+export RABBITMQ_MAX_SERVER_WAIT_TIME=1
 ```
